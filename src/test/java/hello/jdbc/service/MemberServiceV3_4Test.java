@@ -5,7 +5,6 @@ import hello.jdbc.repository.MemberRepositoryV3;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.support.AopUtils;
@@ -25,12 +24,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /*
-* 트랜잭션 - @Transactional AOP
+* 트랜잭션 - DataSource, transactionManager 자동 등록
 * */
 
 @Slf4j
 @SpringBootTest // bean 주입, 스프링 AOP를 적용하려면 스프링 컨테이너가 필요함 -> 해당 애노테이션을 써서 컨테이너 생성
-class MemberServiceV3_3Test {
+class MemberServiceV3_4Test {
 
     public static final String MEMBER_A = "memberA";
     public static final String MEMBER_B = "memberB";
@@ -45,20 +44,18 @@ class MemberServiceV3_3Test {
     @TestConfiguration // 테스트 안에서 스프링 부트가 자동으로 만들어주는 빈들에 추가로 필요한 스프링 빈들을 등록하고 테스트를 수행할 수 있다.
     static class TestConfig {
         // spring container 안에서 주입받아서 쓸 수 있게 됨
+        /* 스프링 빈 자동 리소스 등록*/
+        // application.properties를 통해 자동으로 빈 등록 기능을 사용할 수 있게 됨
 
-        @Bean
-        DataSource dataSource(){ // 데이터소스를 스프링 빈으로 등록
-            return new DriverManagerDataSource(URL, USERNAME, PASSWORD);
-        }
+        private final DataSource dataSource;
 
-        @Bean
-        PlatformTransactionManager transactionManager() { // 트랜잭션 매니저를 스프링 빈으로 등록 -> @Transactional 사용을 위함
-            return new DataSourceTransactionManager(dataSource());
+        public TestConfig(DataSource dataSource) {
+            this.dataSource = dataSource;
         }
 
         @Bean
         MemberRepositoryV3 memberRepositoryV3() {
-            return new MemberRepositoryV3(dataSource());
+            return new MemberRepositoryV3(dataSource);
         }
 
         @Bean
